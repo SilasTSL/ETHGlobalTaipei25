@@ -1,0 +1,194 @@
+[
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "batchId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "userDataUsed",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalDataUsed",
+        "type": "uint256"
+      }
+    ],
+    "name": "DataUsageRewardDistributed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "purchaseTxHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "purchasingUser",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "merchantType",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "merchantLocation",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "transactionTitle",
+            "type": "string"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct PreRewards.TransactionDetails",
+        "name": "transactionDetails",
+        "type": "tuple"
+      }
+    ],
+    "name": "InfluenceRewardDistributed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "RecommendationDataUsed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "admins",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "purchaseTxHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "purchasingUser",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "merchantType",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "merchantLocation",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "transactionTitle",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct PreRewards.TransactionDetails",
+        "name": "transactionDetails",
+        "type": "tuple"
+      }
+    ],
+    "name": "logInfluenceReward",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "batchId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "userDataUsed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalDataUsed",
+        "type": "uint256"
+      }
+    ],
+    "name": "logTrainingDataUsage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "logRecommendationDataUsage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

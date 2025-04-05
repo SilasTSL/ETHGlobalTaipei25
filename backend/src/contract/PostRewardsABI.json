@@ -1,0 +1,249 @@
+[
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "batchId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "userDataUsed",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalDataUsed",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "rewardPaymentsTx",
+        "type": "bytes32"
+      }
+    ],
+    "name": "DataUsageRewardDistributed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "purchaseTxHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "purchasingUser",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "merchantType",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "merchantLocation",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "transactionTitle",
+            "type": "string"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct PostRewards.TransactionDetails",
+        "name": "transactionDetails",
+        "type": "tuple"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "users",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "influenceScore",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32[]",
+        "name": "rewardPaymentTxs",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "InfluenceRewardDistributed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "rewardPaymentTx",
+        "type": "bytes32"
+      }
+    ],
+    "name": "RecommendationDataUsed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "admins",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "purchaseTxHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "purchasingUser",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "merchantType",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "merchantLocation",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "transactionTitle",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct PostRewards.TransactionDetails",
+        "name": "transactionDetails",
+        "type": "tuple"
+      },
+      {
+        "internalType": "address[]",
+        "name": "users",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "influenceScores",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "rewardPaymentTxs",
+        "type": "bytes32[]"
+      }
+    ],
+    "name": "logInfluenceReward",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "batchId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "userDataUsed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalDataUsed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "rewardPaymentTx",
+        "type": "bytes32"
+      }
+    ],
+    "name": "logTrainingDataUsage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "rewardPaymentTx",
+        "type": "bytes32"
+      }
+    ],
+    "name": "logRecommendationDataUsage",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
