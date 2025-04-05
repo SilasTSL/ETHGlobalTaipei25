@@ -53,22 +53,22 @@ const productAds = [
     brandName: "SecureChain",
     description:
       "Keep your crypto assets safe with military-grade encryption. The most secure hardware wallet on the market.",
-    price: "$129.99",
+    price: "$0.99",
     discount: "15% OFF",
     imageUrl: "/images/101.jpg?height=720&width=405&text=CryptoSecure",
     ctaText: "Shop Now",
-    ctaUrl: "/purchase?address=0xb76d3afB4AECe9f9916EB5e727B7472b609332dE&price=19.99",
+    ctaUrl: "/purchase?ensName=weijie2.jay333.eth&price=0.99",
   },
   {
     id: 102,
     productName: "Low-Risk Crypto Investment Guide",
     brandName: "ArtChain",
     description: "Learn how to invest in crypto with low risk and high returns.",
-    price: "$19.99",
+    price: "$2.99",
     discount: "20% OFF",
     imageUrl: "/images/102.jpeg?height=720&width=405&text=Low-Risk+Crypto+Investment+Guide",
     ctaText: "Shop Now",
-    ctaUrl: "/purchase?address=0xb76d3afB4AECe9f9916EB5e727B7472b609332dE&price=5.99",
+    ctaUrl: "/purchase?ensName=weijie2.jay333.eth&price=5.99",
   },
 ]
 

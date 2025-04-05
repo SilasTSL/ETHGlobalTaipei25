@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useAuth } from "@/components/contexts/authContext"
 // Mock rewards data
 const rewardsData = [
   {
@@ -40,7 +41,9 @@ export function Wallet() {
   const [transactions, setTransactions] = useState([])
   const [rewards, setRewards] = useState(rewardsData)
   const [totalBalance, setTotalBalance] = useState(0)
-  const [walletName, setWalletName] = useState("crypto.eth")
+  const { ensName } = useAuth()
+  // const [walletName, setWalletName] = useState(ensName)
+
   const [dailyChange, setDailyChange] = useState("+2.4%")
   const [monthlyChange, setMonthlyChange] = useState("+8.7%")
   const [copyMessage, setCopyMessage] = useState("")
@@ -102,7 +105,7 @@ export function Wallet() {
           <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
             <span className="text-xs font-bold">W</span>
           </div>
-          <h1 className="text-lg font-bold">{walletName}</h1>
+          <h1 className="text-lg font-bold">{ensName}</h1>
           <div className="relative">
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-gray-800" onClick={copyAddress}>
               <Copy className="h-4 w-4" />

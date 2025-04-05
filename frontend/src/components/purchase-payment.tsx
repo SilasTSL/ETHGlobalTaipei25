@@ -57,10 +57,10 @@ const RefreshTimer = ({ onRefresh, resetKey, disabled }: { onRefresh: () => void
 }
 
 
-export function PurchasePayment({ address, price }: { address: string, price: string }) {
+export function PurchasePayment({ ensName, price }: { ensName: string, price: string }) {
   const router = useRouter()
   const { showNotification } = useNotification()
-  const [recipientAddress, setRecipientAddress] = useState(address ? address : "")
+  const [recipientEnsName, setRecipientEnsName] = useState(ensName ? ensName : "")
   const [recipientChain, setRecipientChain] = useState<string | null>(null)
   const [isCheckingAddress, setIsCheckingAddress] = useState(false)
   const [selectedChain, setSelectedChain] = useState<string | null>(null)
@@ -93,7 +93,7 @@ export function PurchasePayment({ address, price }: { address: string, price: st
 
   //TODO: To Check recipient address and determine chain
   useEffect(() => {
-    if (recipientAddress.length > 30) {
+    if (recipientEnsName.length > 5) {
       setIsCheckingAddress(true)
 
       // Simulate API call to check address
@@ -106,7 +106,7 @@ export function PurchasePayment({ address, price }: { address: string, price: st
     } else {
       setRecipientChain(null)
     }
-  }, [recipientAddress])
+  }, [recipientEnsName])
 
   // Load assets when chain is selected
   useEffect(() => {
@@ -187,7 +187,7 @@ export function PurchasePayment({ address, price }: { address: string, price: st
 
 
   const handleConfirm = async () => {
-    if (recipientAddress && cryptoAmount && selectedChain && recipientChain && selectedAsset) {
+    if (recipientEnsName && cryptoAmount && selectedChain && recipientChain && selectedAsset) {
       // Determine the chainsInvolved value
       let chainsInvolved = `${selectedChain}_${recipientChain}`;
       
@@ -205,14 +205,14 @@ export function PurchasePayment({ address, price }: { address: string, price: st
         // Determine if bridging is needed (chains are different)
         if (recipientChain !== selectedChain) {
           result = await postPurchasePaymentBridgeChain(
-            recipientAddress, 
+            recipientEnsName, 
             cryptoAmount, 
             chainsInvolved, 
             selectedAsset,
           );
         } else {
           result = await postPurchasePaymentSameChain(
-            recipientAddress, 
+            recipientEnsName, 
             cryptoAmount, 
             chainsInvolved, 
             selectedAsset,
@@ -222,13 +222,13 @@ export function PurchasePayment({ address, price }: { address: string, price: st
         // Show success notification with transaction hash
         showNotification(
           "success", 
-          `Transaction to ${result.destinationAddress.slice(0, 6)}...${result.destinationAddress.slice(-4)} complete! Hash: ${result.txHash.slice(0, 6)}...${result.txHash.slice(-4)}`
+          `Transaction to ${result.destinationEnsName} complete! Hash: ${result.txHash.slice(0, 6)}...${result.txHash.slice(-4)}`
         );
 
         // Set transaction details
         setTransactionDetails({
           sourceAddress: result.sourceAddress,
-          destinationAddress: result.destinationAddress,
+          destinationAddress: result.destinationEnsName,
           txHash: result.txHash
         });
         
@@ -269,8 +269,8 @@ export function PurchasePayment({ address, price }: { address: string, price: st
                 id="recipient"
                 placeholder="0x..."
                 className="bg-[#1c1d2a] border-[#2a2c3e] text-white"
-                value={recipientAddress}
-                onChange={(e) => setRecipientAddress(e.target.value)}
+                value={recipientEnsName}
+                onChange={(e) => setRecipientEnsName(e.target.value)}
               />
               {isCheckingAddress && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -422,7 +422,7 @@ export function PurchasePayment({ address, price }: { address: string, price: st
           {/* Pay Button */}
           <Button
             className="w-full bg-[#d13b3b] hover:bg-[#b83232] text-white"
-            disabled={!recipientAddress || !selectedChain || !selectedAsset || !amountUSD || cryptoAmount === null}
+            disabled={!recipientEnsName || !selectedChain || !selectedAsset || !amountUSD || cryptoAmount === null}
             onClick={handlePay}
           >
             Pay
@@ -456,7 +456,7 @@ export function PurchasePayment({ address, price }: { address: string, price: st
             <div className="flex justify-between">
               <span className="text-gray-400">Recipient</span>
               <span className="text-sm">
-                {recipientAddress.substring(0, 6)}...{recipientAddress.substring(recipientAddress.length - 4)}
+                {recipientEnsName.substring(0, 6)}...{recipientEnsName.substring(recipientEnsName.length - 4)}
               </span>
             </div>
 
