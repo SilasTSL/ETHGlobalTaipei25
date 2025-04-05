@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { VerificationQR } from "@/components/verification-qr"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useVerification } from "@/components/contexts/verificationContext"
 
 // Mock user data
 const userData = {
@@ -23,7 +24,7 @@ const userData = {
   isVerified: false,
   avatar: "/placeholder.svg?height=100&width=100",
   badges: [
-    { id: 1, name: "Early Adopter", icon: "��" },
+    { id: 1, name: "Early Adopter", icon: "🚀" },
     { id: 2, name: "Content Creator", icon: "🎬" },
   ],
   activities: [
@@ -34,9 +35,9 @@ const userData = {
 }
 
 export function UserProfile() {
+  const { isVerified, setVerificationStatus } = useVerification()
   const [showVerificationDialog, setShowVerificationDialog] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
-  const [isVerified, setIsVerified] = useState(userData.isVerified)
   const [showVerificationAlert, setShowVerificationAlert] = useState(true)
 
   const handleStartVerification = () => {
@@ -49,14 +50,14 @@ export function UserProfile() {
     // Simulate verification process
     setTimeout(() => {
       setIsVerifying(false)
-      setIsVerified(true)
+      setVerificationStatus(true)
       setShowVerificationDialog(false)
       setShowVerificationAlert(false)
     }, 3000)
   }
 
   return (
-    <div className="h-full bg-black text-white p-4 overflow-hidden">
+    <div className="h-full bg-black text-white p-4 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Profile</h1>
         <Button variant="ghost" size="icon" className="rounded-full">
@@ -210,7 +211,7 @@ export function UserProfile() {
         </TabsList>
 
         <TabsContent value="badges" className="h-full">
-          <ScrollArea className="h-full pr-4">
+          <ScrollArea className="h-full pr-4 pb-4">
             <div className="space-y-3">
               {userData.badges.map((badge) => (
                 <Card key={badge.id} className="bg-gray-900 border-gray-800">
@@ -227,21 +228,6 @@ export function UserProfile() {
                   </CardContent>
                 </Card>
               ))}
-
-              <Card className="bg-gray-900 border-gray-800 border-dashed border-2">
-                <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                  <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-2">
-                    <Shield className="h-6 w-6 text-gray-500" />
-                  </div>
-                  <h3 className="font-medium mb-1">Verification Badge</h3>
-                  <p className="text-xs text-gray-400 mb-3">Verify your identity to earn this badge</p>
-                  {!isVerified && (
-                    <Button variant="outline" size="sm" onClick={handleStartVerification}>
-                      Get Verified
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
             </div>
           </ScrollArea>
         </TabsContent>
