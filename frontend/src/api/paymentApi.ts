@@ -4,10 +4,10 @@ import axios from "axios"
 dotenv.config
 
 const port = process.env.PORT || 3000
-
+axios.defaults.withCredentials = true
 interface TransactionResponse {
   sourceAddress: string;
-  destinationAddress: string;
+  destinationEnsName: string;
   txHash: string;
 }
 
@@ -18,7 +18,7 @@ interface TxDetails {
 }
 
 const postPurchasePaymentSameChain = async (
-  destinationAddress: string,
+  destinationEnsName: string,
   amount: number,
   chainsInvolved: string,
   tokenToTransfer: string,
@@ -31,7 +31,7 @@ const postPurchasePaymentSameChain = async (
     }
     // Make the transaction request to your blockchain service
     const response = await axios.post(`http://localhost:${port}/payment-transfer/same-chain`, {
-      destinationAddress,
+      destinationEnsName,
       amount,
       chainsInvolved,
       tokenToTransfer,
@@ -45,7 +45,7 @@ const postPurchasePaymentSameChain = async (
       throw new Error('Invalid transaction response');
     }
 
-    return { sourceAddress, destinationAddress, txHash };
+    return { sourceAddress, destinationEnsName, txHash };
   } catch (error) {
     console.error('Error processing payment transaction:', error);
     throw new Error('Failed to process payment transaction');
@@ -53,7 +53,7 @@ const postPurchasePaymentSameChain = async (
 };
 
 const postPurchasePaymentBridgeChain = async (
-  destinationAddress: string,
+  destinationEnsName: string,
   amount: number,
   chainsInvolved: string,
   tokenToTransfer: string,
@@ -76,14 +76,14 @@ const postPurchasePaymentBridgeChain = async (
     }
     // Make the transaction request to your blockchain service
     console.log({
-      destinationAddress,
+      destinationEnsName,
       amount,
       chainsInvolved,
       tokenToTransfer,
       txDetails
     })
     const response = await axios.post(`http://localhost:${port}/payment-transfer/bridge`, {
-      destinationAddress,
+      destinationEnsName,
       amount,
       chainsInvolved,
       tokenToTransfer,
@@ -97,7 +97,7 @@ const postPurchasePaymentBridgeChain = async (
       throw new Error('Invalid transaction response');
     }
 
-    return { sourceAddress, destinationAddress, txHash };
+    return { sourceAddress, destinationEnsName, txHash };
   } catch (error) {
     console.error('Error processing payment transaction:', error);
     throw new Error('Failed to process payment transaction');

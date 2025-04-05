@@ -1,14 +1,12 @@
 import dotenv from "dotenv"
-
 import axios from "axios"
 
-dotenv.config
+dotenv.config()
 
 const port = process.env.PORT || 3000
 
-const DEFAULT_WALLET_ADDRESS = '0x94e0c8b1c540eb2f00Fb000320357AE591e5C262'
-
-
+const DEFAULT_WALLET_ADDRESS = '0xb76d3afB4AECe9f9916EB5e727B7472b609332dE'
+axios.defaults.withCredentials = true
 const fetchWalletBalanceTestNet = async (blockchain: string) => {
   try {
     const response = await axios.get(`http://localhost:${port}/wallet/balance`, {

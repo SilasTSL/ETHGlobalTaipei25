@@ -1,6 +1,6 @@
 import { Redirect } from "@/components/redirect"
 
 export default function Home() {
-  return <Redirect to="/feed" />
+  return <Redirect to="/home" />
 }
 
