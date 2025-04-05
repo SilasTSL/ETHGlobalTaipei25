@@ -140,3 +140,13 @@
   animation: pulse-border 2s infinite;
 }
 
+
+.web3-avatar-border {
+  border-color: transparent;
+  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+

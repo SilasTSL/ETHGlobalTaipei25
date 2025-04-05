@@ -21,7 +21,7 @@ export default function RootLayout({
           <VerificationProvider>
             <NotificationProvider>
               <div className="flex flex-col h-[100dvh] w-full max-w-md mx-auto bg-black">
-                <main className="flex-1 overflow-hidden">{children}</main>
+                <main className="flex-1 overflow-y-auto">{children}</main>
                 <TabNavigation />
               </div>
             </NotificationProvider>
