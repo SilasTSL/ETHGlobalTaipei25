@@ -202,3 +202,44 @@ def get_recommendations():
     return jsonify({
         "recommended_videos": recommended_videos
     })
+
+
+@app.route("/user/delete", methods=["DELETE"])
+def delete_user():
+    user_id = request.args.get("user_id")
+    try:
+        user_object_id = ObjectId(user_id)
+    except:
+        return jsonify({"error": "Invalid user ID format"}), 400
+    users_collection.delete_one({"_id": user_object_id})
+    load_faiss_indices()
+    return jsonify({"message": "User deleted successfully"})
+
+@app.route("/video/delete", methods=["DELETE"])
+def delete_video():
+    video_id = request.args.get("video_id")
+    try:
+        video_object_id = ObjectId(video_id)
+    except:
+        return jsonify({"error": "Invalid video ID format"}), 400
+    videos_collection.delete_one({"_id": video_object_id})
+    load_faiss_indices()
+    return jsonify({"message": "Video deleted successfully"})
+
+@app.route("/user/get_all_users", methods=["GET"])
+def get_all_users():
+    users = users_collection.find()
+    user_list = []
+    for user in users:
+        user["_id"] = str(user["_id"])  # Convert ObjectId to string
+        user_list.append(user)
+    return jsonify({"users": user_list})
+
+@app.route("/user/get_all_videos", methods=["GET"])
+def get_all_videos():
+    videos = videos_collection.find()
+    video_list = []
+    for video in videos:
+        video["_id"] = str(video["_id"])  # Convert ObjectId to string
+        video_list.append(video)
+    return jsonify({"videos": video_list})
