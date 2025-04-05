@@ -1,23 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 
 export default function Home() {
   const [data, setData] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/data');
-        setData(response.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
