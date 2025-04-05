@@ -13,7 +13,7 @@ yarn-error.log*
 lerna-debug.log*
 
 # OS
-.DS_Store
+*.DS_Store
 Thumbs.db
 
 # Environment variables
