@@ -16,7 +16,7 @@ type VerificationProviderProps = {
 };
 
 export const VerificationProvider: React.FC<VerificationProviderProps> = ({ children }) => {
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState(true);
 
   const setVerificationStatus = async (status: boolean) => {
     console.log("Setting verification status:", status);

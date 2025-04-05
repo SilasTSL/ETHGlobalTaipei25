@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Eye, Database, Target, ShoppingBag, Shield, ExternalLink, SlidersHorizontal, Coins } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { fetchDataUsageRecords } from "@/lib/data-vault"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Types for data records
 interface BaseRecord {
@@ -20,15 +21,15 @@ interface BaseRecord {
 }
 
 interface RecommendationRecord extends BaseRecord {
-  type: "recommendation"
+  type: "distributeDataRecommendationRewards"
 }
 
 interface TrainingRecord extends BaseRecord {
-  type: "training"
+  type: "distributeDataTrainingRewards"
 }
 
 interface PurchaseRecord extends BaseRecord {
-  type: "purchase"
+  type: "distributeInfluenceRewards"
   merchantType: string
   influenceScore: number
 }
@@ -36,17 +37,18 @@ interface PurchaseRecord extends BaseRecord {
 type DataRecord = RecommendationRecord | TrainingRecord | PurchaseRecord
 
 export function DataVault() {
+  const userId = "0x94e0c8b1c540eb2f00Fb000320357AE591e5C262"
   const [records, setRecords] = useState<DataRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [timeFilter, setTimeFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
 
   // Fetch data records on component mount
-  useEffect(() => {
+  useState(() => {
     const fetchRecords = async () => {
       setIsLoading(true)
       try {
-        const data = await fetchDataUsageRecords()
+        const data = await fetchDataUsageRecords(userId)
         setRecords(data)
       } catch (error) {
         console.error("Failed to fetch data records:", error)
@@ -56,7 +58,7 @@ export function DataVault() {
     }
 
     fetchRecords()
-  }, [])
+  })
 
   // Filter records based on selected filters
   const filteredRecords = records.filter((record) => {
@@ -80,15 +82,15 @@ export function DataVault() {
   })
 
   // Group records by type
-  const recommendationRecords = filteredRecords.filter((record) => record.type === "recommendation")
-  const trainingRecords = filteredRecords.filter((record) => record.type === "training")
-  const purchaseRecords = filteredRecords.filter((record) => record.type === "purchase")
+  const recommendationRecords = filteredRecords.filter((record) => record.type === "distributeDataRecommendationRewards")
+  const trainingRecords = filteredRecords.filter((record) => record.type === "distributeDataTrainingRewards")
+  const purchaseRecords = filteredRecords.filter((record) => record.type === "distributeInfluenceRewards")
 
   // Calculate total rewards
-  const totalRewards = filteredRecords.reduce((sum, record) => sum + record.rewardAmount, 0)
-
-  // Get etherscan URL for a transaction hash
-  const getEtherscanUrl = (hash: string) => `https://etherscan.io/tx/${hash}`
+  const totalRewards = filteredRecords.reduce((acc, record) => acc + Number(record.rewardAmount), 0)
+  
+  // Get basescan URL for a transaction hash
+  const getBasescanUrl = (hash: string) => `https://sepolia.basescan.org/tx/${hash}`
 
   // Format transaction hash for display
   const formatHash = (hash: string) => {
@@ -98,7 +100,7 @@ export function DataVault() {
 
   // Render a record card based on its type
   const renderRecordCard = (record: DataRecord) => {
-    const etherscanUrl = getEtherscanUrl(record.transactionHash)
+    const basescanUrl = getBasescanUrl(record.transactionHash)
 
     return (
       <Card key={record.id} className="bg-gray-900 border-gray-800 mb-3 overflow-hidden">
@@ -106,19 +108,19 @@ export function DataVault() {
           <div className="flex items-start gap-3">
             <div
               className={`p-2 rounded-full ${
-                record.type === "recommendation"
+                record.type === "distributeDataRecommendationRewards"
                   ? "bg-blue-500/20"
-                  : record.type === "training"
+                  : record.type === "distributeDataTrainingRewards"
                     ? "bg-purple-500/20"
                     : "bg-green-500/20"
               }`}
             >
-              {record.type === "recommendation" ? (
-                <Eye className={`h-4 w-4 ${record.type === "recommendation" ? "text-blue-500" : ""}`} />
-              ) : record.type === "training" ? (
-                <Target className={`h-4 w-4 ${record.type === "training" ? "text-purple-500" : ""}`} />
+              {record.type === "distributeDataRecommendationRewards" ? (
+                <Eye className={`h-4 w-4 ${record.type === "distributeDataRecommendationRewards" ? "text-blue-500" : ""}`} />
+              ) : record.type === "distributeDataTrainingRewards" ? (
+                <Target className={`h-4 w-4 ${record.type === "distributeDataTrainingRewards" ? "text-purple-500" : ""}`} />
               ) : (
-                <ShoppingBag className={`h-4 w-4 ${record.type === "purchase" ? "text-green-500" : ""}`} />
+                <ShoppingBag className={`h-4 w-4 ${record.type === "distributeInfluenceRewards" ? "text-green-500" : ""}`} />
               )}
             </div>
 
@@ -126,9 +128,9 @@ export function DataVault() {
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h4 className="text-sm font-medium">
-                    {record.type === "recommendation"
+                    {record.type === "distributeDataRecommendationRewards"
                       ? "Data Used for Recommendation"
-                      : record.type === "training"
+                      : record.type === "distributeDataTrainingRewards"
                         ? "Data Used for Model Training"
                         : "Content Contributed to Purchase"}
                   </h4>
@@ -136,25 +138,25 @@ export function DataVault() {
                 </div>
                 <Badge
                   variant={
-                    record.type === "recommendation" ? "default" : record.type === "training" ? "secondary" : "outline"
+                    record.type === "distributeDataRecommendationRewards" ? "default" : record.type === "distributeDataTrainingRewards" ? "secondary" : "outline"
                   }
                   className={
-                    record.type === "recommendation"
+                    record.type === "distributeDataRecommendationRewards"
                       ? "bg-blue-500/20 text-blue-500 hover:bg-blue-500/30"
-                      : record.type === "training"
+                      : record.type === "distributeDataTrainingRewards"
                         ? "bg-purple-500/20 text-purple-500 hover:bg-purple-500/30"
                         : "bg-green-500/20 text-green-500 hover:bg-green-500/30"
                   }
                 >
-                  {record.type === "recommendation"
+                  {record.type === "distributeDataRecommendationRewards"
                     ? "Recommendation"
-                    : record.type === "training"
+                    : record.type === "distributeDataTrainingRewards"
                       ? "Training"
                       : "Purchase"}
                 </Badge>
               </div>
 
-              {record.type === "purchase" && (
+              {record.type === "distributeInfluenceRewards" && (
                 <div className="mb-3">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs text-gray-400">Merchant Type</span>
@@ -177,14 +179,14 @@ export function DataVault() {
                 <span className="text-xs text-gray-400">Reward</span>
                 <div className="flex items-center">
                   <Coins className="h-3 w-3 text-yellow-400 mr-1" />
-                  <span className="text-xs font-medium">{record.rewardAmount} SOCIAL</span>
+                  <span className="text-xs font-medium">{record.rewardAmount} ETH</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-400">Transaction</span>
                 <a
-                  href={etherscanUrl}
+                  href={basescanUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center text-xs text-primary hover:underline"
@@ -221,52 +223,34 @@ export function DataVault() {
             </div>
             <div>
               <p className="text-sm font-medium">Total Rewards</p>
-              <p className="text-xs text-gray-400">All time</p>
+              <p className="text-xs text-gray-400">Recent</p>
             </div>
           </div>
-          <p className="text-lg font-bold">{totalRewards.toFixed(2)} SOCIAL</p>
-          <p className="text-xs text-gray-400">From {records.length} data usage records</p>
+          {isLoading ? <div className="flex items-center text-lg font-bold gap-2"><Skeleton className="h-5 w-10" /> ETH</div> : <p className="text-lg font-bold">{`${totalRewards.toFixed(5)} ETH`}</p>}
+          {isLoading ? <Skeleton className="h-3 w-20" /> : <p className="text-xs text-gray-400">{`From recent most ${records.length} data usage records`}</p>}
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="all" className="h-[calc(100%-220px)]">
+      <Tabs defaultValue="all" className="flex flex-col h-full">
         <div className="flex justify-between items-center mb-4">
           <TabsList className="flex w-full">
             <TabsTrigger value="all" className="flex-1">
               All
             </TabsTrigger>
-            <TabsTrigger value="recommendation" className="flex-1">
+            <TabsTrigger value="distributeDataRecommendationRewards" className="flex-1">
               Recommendations
             </TabsTrigger>
-            <TabsTrigger value="training" className="flex-1">
+            <TabsTrigger value="distributeDataTrainingRewards" className="flex-1">
               Training
             </TabsTrigger>
-            <TabsTrigger value="purchase" className="flex-1">
+            <TabsTrigger value="distributeInfluenceRewards" className="flex-1">
               Purchases
             </TabsTrigger>
           </TabsList>
-
-          <div className="flex items-center gap-2">
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-[120px] h-8 text-xs bg-gray-900 border-gray-800">
-                <SelectValue placeholder="Time Period" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-900 border-gray-800">
-                <SelectItem value="all">All Time</SelectItem>
-                <SelectItem value="day">Last 24 Hours</SelectItem>
-                <SelectItem value="week">Last Week</SelectItem>
-                <SelectItem value="month">Last Month</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button variant="outline" size="icon" className="h-8 w-8 bg-gray-900 border-gray-800">
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
-          </div>
         </div>
 
-        <TabsContent value="all" className="h-full">
-          <ScrollArea className="h-full pr-4">
+        <TabsContent value="all" className="flex-1 min-h-0">
+          <ScrollArea className="h-full">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-2"></div>
@@ -279,13 +263,13 @@ export function DataVault() {
                 <p className="text-xs text-gray-500 mt-1">Records will appear here when your data is used</p>
               </div>
             ) : (
-              <div className="space-y-1">{filteredRecords.map((record) => renderRecordCard(record))}</div>
+              <div className="space-y-1 h-full">{filteredRecords.map((record) => renderRecordCard(record))}</div>
             )}
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="recommendation" className="h-full">
-          <ScrollArea className="h-full pr-4">
+        <TabsContent value="distributeDataRecommendationRewards" className="h-full">
+          <ScrollArea className="h-full relative">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-2"></div>
@@ -305,8 +289,8 @@ export function DataVault() {
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="training" className="h-full">
-          <ScrollArea className="h-full pr-4">
+        <TabsContent value="distributeDataTrainingRewards" className="h-full">
+          <ScrollArea className="h-full relative">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-2"></div>
@@ -326,8 +310,8 @@ export function DataVault() {
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="purchase" className="h-full">
-          <ScrollArea className="h-full pr-4">
+        <TabsContent value="distributeInfluenceRewards" className="h-full">
+          <ScrollArea className="h-full relative">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-2"></div>
@@ -340,7 +324,7 @@ export function DataVault() {
                 <p className="text-xs text-gray-500 mt-1">Records will appear when your content influences purchases</p>
               </div>
             ) : (
-              <div className="space-y-1">{purchaseRecords.map((record) => renderRecordCard(record))}</div>
+              <div className="space-y-1 h-40">{purchaseRecords.map((record) => renderRecordCard(record))}</div>
             )}
           </ScrollArea>
         </TabsContent>

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState } from "react"
-import { Notification, type NotificationType } from "@/components/helper/notification"
+import { Notification, type NotificationType } from "./notification"
 
 // Define the context type
 type NotificationContextType = {

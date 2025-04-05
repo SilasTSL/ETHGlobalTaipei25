@@ -1,340 +1,281 @@
 "use client"
 
-import { useState } from "react"
-import { WalletIcon, QrCode, ArrowUpRight, ArrowDownLeft, Clock, Copy, ChevronRight, CreditCard } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Copy, ArrowUpRight, ArrowDownLeft, QrCode, CreditCard } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { QRScanner } from "@/components/qr-scanner"
-import { PaymentSuccess } from "@/components/payment-success"
-
-// Mock transaction data
-const transactionsData = [
+import { useRouter } from "next/navigation"
+import { fetchLatestTransactions, fetchWalletBalanceTestNet } from "@/api/walletApi"
+import { AssetSkeleton } from "@/components/helper/assetSkeleton"
+import { TransactionSkeleton } from "@/components/helper/transactionSkeleton"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+// Mock rewards data
+const rewardsData = [
   {
     id: 1,
-    type: "sent",
-    amount: "0.05 ETH",
-    recipient: "0x742d...8cd5",
-    date: "Today, 10:42 AM",
-    status: "Completed",
+    amount: "5 USDC",
+    value: "$5.00",
+    source: "Referral Bonus",
+    date: "Today, 2:15 PM",
   },
   {
     id: 2,
-    type: "received",
-    amount: "25 USDC",
-    sender: "0x3f8a...2e7b",
-    date: "Yesterday, 3:15 PM",
-    status: "Completed",
-  },
-  {
-    id: 3,
-    type: "sent",
-    amount: "0.01 ETH",
-    recipient: "Coffee Shop",
-    date: "Mar 15, 9:30 AM",
-    status: "Completed",
-  },
-  {
-    id: 4,
-    type: "received",
-    amount: "50 USDC",
-    sender: "Web3 Rewards",
-    date: "Mar 12, 2:20 PM",
-    status: "Completed",
+    amount: "10 USDC",
+    value: "$10.00",
+    source: "Staking Reward",
+    date: "Yesterday, 9:30 AM",
   },
 ]
 
 export function Wallet() {
-  const [showQrScanner, setShowQrScanner] = useState(false)
-  const [transactions, setTransactions] = useState(transactionsData)
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
-  const [paymentDetails, setPaymentDetails] = useState({ merchant: "", amount: "" })
+  const router = useRouter()
+  const [assets, setAssets] = useState([])
+  const [transactions, setTransactions] = useState([])
+  const [rewards, setRewards] = useState(rewardsData)
+  const [totalBalance, setTotalBalance] = useState(0)
+  const [walletName, setWalletName] = useState("crypto.eth")
+  const [dailyChange, setDailyChange] = useState("+2.4%")
+  const [monthlyChange, setMonthlyChange] = useState("+8.7%")
+  const [copyMessage, setCopyMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+
+
+  const [isTransactionsLoading, setIsTransactionsLoading] = useState(true)
+  const [blockchain, setBlockchain] = useState("ETH")
+  // Calculate total balance from assets
+  useEffect(() => {
+    fetchWalletBalance(blockchain)
+  }, [blockchain])
+
+    // Update the useEffect for transactions
+  useEffect(() => {
+      fetchTransactions(blockchain)
+    }, [blockchain])
+
+  const fetchWalletBalance = async (blockchain: string) => {
+    setIsLoading(true)
+    try {
+      const assets = await fetchWalletBalanceTestNet(blockchain)
+      setAssets(assets)
+
+      // Calculate total balance
+      const total = assets.reduce((acc, asset) => acc + asset.totalValue, 0)
+      setTotalBalance(total)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const fetchTransactions = async (blockchain: string) => {
+    setIsTransactionsLoading(true)
+    try {
+      const transactions = await fetchLatestTransactions(blockchain)
+      setTransactions(transactions)
+    } finally {
+      setIsTransactionsLoading(false)
+    }
+  }
+
+  const handleBlockchainChange = (value: string) => {
+    setBlockchain(value)
+  }
+
+  // Copy wallet address to clipboard
+  const copyAddress = () => {
+    navigator.clipboard.writeText("0xb76d3afB4AECe9f9916EB5e727B7472b609332dE")
+    setCopyMessage("Address copied!")
+    setTimeout(() => setCopyMessage(""), 2000)
+  }
 
   return (
-    <div className="h-full bg-black text-white p-4 overflow-hidden">
+    <div className="h-full bg-black text-white p-4 flex flex-col">
+      {/* Wallet Header - Shows the wallet name and settings */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Wallet</h1>
-        <WalletIcon className="h-6 w-6 text-primary" />
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
+            <span className="text-xs font-bold">W</span>
+          </div>
+          <h1 className="text-lg font-bold">{walletName}</h1>
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-gray-800" onClick={copyAddress}>
+              <Copy className="h-4 w-4" />
+              <span className="sr-only">Copy address</span>
+            </Button>
+            {copyMessage && (
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-gray-800 rounded text-xs whitespace-nowrap">
+                {copyMessage}
+              </div>
+            )}
+          </div>
+        </div>
+      {/* Blockchain Dropdown */}
+      <Select value={blockchain} onValueChange={handleBlockchainChange}>
+          <SelectTrigger className="w-[110px] h-8 bg-gray-900 border-gray-800 text-xs">
+            <SelectValue placeholder="Select chain" />
+          </SelectTrigger>
+          <SelectContent className="bg-gray-900 border-gray-800 text-white">
+            <SelectItem value="ETH" className="text-xs">
+              Ethereum
+            </SelectItem>
+            <SelectItem value="BASE" className="text-xs">
+              Base
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <Card className="bg-gradient-to-br from-primary/80 to-primary mb-6 border-0">
-        <CardContent className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <p className="text-xs text-white/70 mb-1">Total Balance</p>
-              <h2 className="text-2xl font-bold text-white">$1,245.67</h2>
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full bg-white/20 border-0 text-white hover:bg-white/30"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          </div>
 
-          <div className="flex items-center gap-2 text-xs text-white/70">
-            <p className="font-mono">0x7F3a...9c4E</p>
-          </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-6">
-            <Button className="bg-white/20 hover:bg-white/30 text-white border-0">
-              <ArrowUpRight className="h-4 w-4 mr-2" />
-              Send
-            </Button>
-            <Button className="bg-white/20 hover:bg-white/30 text-white border-0">
-              <ArrowDownLeft className="h-4 w-4 mr-2" />
-              Receive
-            </Button>
+      {/* Balance Card - Shows the total balance and performance */}
+      <Card className="bg-gray-900 border-gray-800 mb-4">
+        <CardContent className="p-4 flex flex-col items-center">
+          <p className="text-sm text-gray-400">Total Balance</p>
+          <h2 className="text-3xl font-bold text-white">${totalBalance.toFixed(2)}</h2>
+
+          <div className="flex gap-3 mt-1">
+            <span className="text-xs text-green-400">{dailyChange} Today</span>
+            <span className="text-xs text-green-400">{monthlyChange} Month</span>
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Assets</h3>
-        <Button variant="ghost" size="sm" className="text-xs text-gray-400">
-          See All
-          <ChevronRight className="h-3 w-3 ml-1" />
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <Card className="bg-gray-900 border-gray-800">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                <span className="text-xs font-bold">ETH</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Ethereum</p>
-                <p className="text-xs text-gray-400">ETH</p>
-              </div>
-            </div>
-            <p className="text-lg font-bold">0.42 ETH</p>
-            <p className="text-xs text-gray-400">$756.32</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-900 border-gray-800">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                <span className="text-xs font-bold">USDC</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium">USD Coin</p>
-                <p className="text-xs text-gray-400">USDC</p>
-              </div>
-            </div>
-            <p className="text-lg font-bold">489.35 USDC</p>
-            <p className="text-xs text-gray-400">$489.35</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Quick Actions</h3>
-      </div>
-
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <Button
-          variant="outline"
-          className="flex flex-col h-auto py-4 bg-gray-900 border-gray-800 hover:bg-gray-800"
-          onClick={() => setShowQrScanner(true)}
-        >
-          <QrCode className="h-5 w-5 mb-2 text-primary" />
-          <span className="text-xs">Scan QR</span>
-        </Button>
-
-        <Dialog open={showQrScanner} onOpenChange={setShowQrScanner}>
-          <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="flex flex-col h-auto py-4 bg-gray-900 border-gray-800 hover:bg-gray-800"
+      {/* Assets Section - Shows the user's crypto assets */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-base font-medium text-white">Your Assets</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-gray-400 h-6 px-2"
+            onClick={() => {}}
+          >
+            See All
+            <svg
+              className="h-3 w-3 ml-1"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <CreditCard className="h-5 w-5 mb-2 text-primary" />
-              <span className="text-xs">Pay</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-gray-900 border-gray-800">
-            <DialogHeader>
-              <DialogTitle>Scan QR Code to Pay</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col items-center justify-center p-4">
-              <div className="w-64 h-64 bg-gray-800 flex items-center justify-center mb-4 rounded-lg">
-                <QrCode className="w-16 h-16 text-gray-600" />
-              </div>
-              <p className="text-sm text-gray-400 text-center">
-                Position the QR code within the frame to scan and make a payment
-              </p>
-            </div>
-          </DialogContent>
-        </Dialog>
+              <path
+                d="M9 18L15 12L9 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Button>
+        </div>
 
-        <Button variant="outline" className="flex flex-col h-auto py-4 bg-gray-900 border-gray-800 hover:bg-gray-800">
-          <Clock className="h-5 w-5 mb-2 text-primary" />
-          <span className="text-xs">History</span>
+        <div className="space-y-2">
+        {isLoading ? (
+            <>
+              <AssetSkeleton />
+              <AssetSkeleton />
+            </>
+          ) : (
+          assets.map((asset: any, index) => (
+            <Card key={index} className="bg-gray-900 border-gray-800">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                      <span className="text-xs font-bold text-black">{asset.name}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{asset.name}</p>
+                      <p className="text-xs text-gray-400">{parseFloat(asset.price).toFixed(2)}</p>                    
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-white">
+                      {asset.balance.toFixed(4)} {asset.symbol}
+                    </p>
+                    <p className="text-xs text-gray-400">${asset.totalValue.toFixed(2)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons - Pay Now and Scan QR */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <Button
+          className="py-5 text-base font-medium bg-black text-white border border-gray-800 hover:bg-gray-900"
+          onClick={() => router.push("/purchase")}
+        >
+          <CreditCard className="h-5 w-5 mr-2" />
+          Pay Now
+        </Button>
+        <Button
+          className="py-5 text-base font-medium bg-black text-white border border-gray-800 hover:bg-gray-900"
+          onClick={() => {}}
+        >
+          <QrCode className="h-5 w-5 mr-2" />
+          Scan QR
         </Button>
       </div>
 
-      <Tabs defaultValue="all" className="h-[calc(100%-420px)]">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="sent">Sent</TabsTrigger>
-          <TabsTrigger value="received">Received</TabsTrigger>
-        </TabsList>
+      {/* Transactions Section - Shows recent transactions */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <Tabs defaultValue="payments" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-2 mb-2 bg-gray-900 rounded-md p-1">
+            <TabsTrigger value="payments" className="data-[state=active]:bg-gray-800">
+              Recent Payments
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="all" className="h-full">
-          <ScrollArea className="h-full pr-4">
-            <div className="space-y-3">
-              {transactions.map((transaction) => (
-                <Card key={transaction.id} className="bg-gray-900 border-gray-800">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-full ${
-                            transaction.type === "sent" ? "bg-red-500/20" : "bg-green-500/20"
-                          }`}
-                        >
-                          {transaction.type === "sent" ? (
-                            <ArrowUpRight
-                              className={`h-4 w-4 ${transaction.type === "sent" ? "text-red-500" : "text-green-500"}`}
-                            />
-                          ) : (
-                            <ArrowDownLeft
-                              className={`h-4 w-4 ${transaction.type === "sent" ? "text-red-500" : "text-green-500"}`}
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {transaction.type === "sent" ? "Sent to" : "Received from"}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {transaction.type === "sent" ? transaction.recipient : transaction.sender}
-                          </p>
-                        </div>
+          <TabsContent value="payments" className="flex-1 overflow-y-auto min-h-0">
+            <div className="space-y-2">
+              {isTransactionsLoading ? (
+                <>
+                  <TransactionSkeleton />
+                  <TransactionSkeleton />
+                  <TransactionSkeleton />
+                </>
+              ) : transactions.length > 0 ? (
+                transactions.map((transaction: any, index) => (
+                  <div key={index} className="flex items-center justify-between py-3 border-b border-gray-800">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-red-400/20 flex items-center justify-center">
+                        <ArrowUpRight className="h-4 w-4 text-red-400" />
                       </div>
-                      <div className="text-right">
-                        <p
-                          className={`text-sm font-medium ${
-                            transaction.type === "sent" ? "text-red-500" : "text-green-500"
-                          }`}
-                        >
-                          {transaction.type === "sent" ? "-" : "+"}
-                          {transaction.amount}
-                        </p>
-                        <p className="text-xs text-gray-400">{transaction.date}</p>
+                      <div>
+                        <p className="text-sm font-medium text-white">Sent to</p>
+                        <p className="text-xs text-gray-400">{transaction.destinationAddress.slice(0, 6)}...{transaction.destinationAddress.slice(-4)}</p>
+                        <p className="text-xs text-gray-400">{transaction.timestamp}</p>
+                        <p className="text-xs text-gray-400">Gas: {transaction.gasCostEth.toFixed(6)} ETH</p>
+                        <p className="text-xs text-gray-400 truncate max-w-[200px]">Tx: {transaction.transactionHash}</p>
                       </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-400">Status</span>
-                      <span className="text-xs text-gray-300">{transaction.status}</span>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-red-400">
+                        -{transaction.value} {transaction.symbol}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-center h-32">
+                  <p className="text-gray-400">No transactions yet</p>
+                </div>
+              )}
             </div>
-          </ScrollArea>
-        </TabsContent>
-
-        <TabsContent value="sent" className="h-full">
-          <ScrollArea className="h-full pr-4">
-            <div className="space-y-3">
-              {transactions
-                .filter((t) => t.type === "sent")
-                .map((transaction) => (
-                  <Card key={transaction.id} className="bg-gray-900 border-gray-800">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-full bg-red-500/20">
-                            <ArrowUpRight className="h-4 w-4 text-red-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Sent to</p>
-                            <p className="text-xs text-gray-400">{transaction.recipient}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-red-500">-{transaction.amount}</p>
-                          <p className="text-xs text-gray-400">{transaction.date}</p>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-400">Status</span>
-                        <span className="text-xs text-gray-300">{transaction.status}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-
-        <TabsContent value="received" className="h-full">
-          <ScrollArea className="h-full pr-4">
-            <div className="space-y-3">
-              {transactions
-                .filter((t) => t.type === "received")
-                .map((transaction) => (
-                  <Card key={transaction.id} className="bg-gray-900 border-gray-800">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-full bg-green-500/20">
-                            <ArrowDownLeft className="h-4 w-4 text-green-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Received from</p>
-                            <p className="text-xs text-gray-400">{transaction.sender}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-green-500">+{transaction.amount}</p>
-                          <p className="text-xs text-gray-400">{transaction.date}</p>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-400">Status</span>
-                        <span className="text-xs text-gray-300">{transaction.status}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-      </Tabs>
-      <QRScanner
-        isOpen={showQrScanner}
-        onClose={() => setShowQrScanner(false)}
-        onPaymentComplete={(merchant, amount) => {
-          // Add the new transaction to the list
-          const newTransaction = {
-            id: Date.now(),
-            type: "sent",
-            amount: amount,
-            recipient: merchant,
-            date: "Just now",
-            status: "Completed",
-          }
-          setTransactions([newTransaction, ...transactions])
-
-          // Show success dialog
-          setPaymentDetails({ merchant, amount })
-          setShowPaymentSuccess(true)
-        }}
-      />
-      <PaymentSuccess
-        isOpen={showPaymentSuccess}
-        onClose={() => setShowPaymentSuccess(false)}
-        merchantName={paymentDetails.merchant}
-        amount={paymentDetails.amount}
-      />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }
