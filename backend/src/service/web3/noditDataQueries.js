@@ -89,9 +89,10 @@ function deepConvertBigInt(obj) {
 }
 
 async function getTransactionAmount(hash) {
-  if (!hash) {
-    console.error("No hash provided");
-    return 0;
+  try {
+    if (!hash) {
+      console.error("No hash provided");
+      return 0;
   }
   const options = {
     method: 'POST',
@@ -108,9 +109,13 @@ async function getTransactionAmount(hash) {
     }
   };
 
-  const response = await axios.request(options);
-  const etherValue = web3.utils.fromWei(response.data.value, 'ether');
-  return etherValue;
+    const response = await axios.request(options);
+    const etherValue = web3.utils.fromWei(response.data.value, 'ether');
+    return etherValue;
+  } catch (error) {
+    console.error('Error in getTransactionAmount:', error);
+    return 0;
+  }
 }
 
 /**
