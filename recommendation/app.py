@@ -243,3 +243,133 @@ def get_all_videos():
         video["_id"] = str(video["_id"])  # Convert ObjectId to string
         video_list.append(video)
     return jsonify({"videos": video_list})
+
+@app.route("/interactions/recent-views/<user_id>", methods=["GET"])
+def get_recent_viewed_videos(user_id):
+    """Get last 5 video IDs viewed by a user"""
+    try:
+        # Validate user_id is a non-empty string
+        if not isinstance(user_id, str) or not user_id.strip():
+            raise ValueError
+    except:
+        return jsonify({"error": "Invalid user ID format"}), 400
+    
+    # Query as STRING (not ObjectId)
+    recent_views = list(interactions_collection.find(
+        {
+            "userId": user_id,  # Match string-to-string
+            "type": "watch"
+        },
+        {"videoId": 1, "createdAt": 1, "_id": 0}
+    ).sort("createdAt", -1).limit(5))  # Works if createdAt is ISO date
+    
+    video_ids = [str(view["videoId"]) for view in recent_views]
+    
+    return jsonify({
+        "user_id": user_id,
+        "recent_viewed_videos": video_ids,
+        "count": len(video_ids)
+    })
+
+@app.route("/calculate-rewards", methods=["POST"])
+def calculate_rewards():
+    print("Reward calculation started")
+
+    data = request.json
+
+    print("Data:", data)
+    
+    # Validate input
+    if not all(key in data for key in ["merchantType", "merchantLocation", "purchasingUserAddress", "transactionTitle"]):
+        return jsonify({"error": "merchantType, merchantLocation, transactionTitle and recentWatchedVideos are required"}), 400
+    
+    user_address = data['purchasingUserAddress']
+
+    user_address_lower = user_address.lower()
+    user_id = users_collection.find_one({"walletId": user_address_lower})["_id"]
+
+    # Fetch watched videos from the database
+    watched_videos_interactions = list(interactions_collection.find(
+        {
+            "userId": str(user_id),  # Match string-to-string
+            "type": "watch"
+        },
+    ).sort("createdAt", -1).limit(5))  # Works if createdAt is ISO date
+
+    watched_videos = []
+    for interaction in watched_videos_interactions:
+        video_id = interaction["videoId"]
+        video = videos_collection.find_one({"_id": ObjectId(video_id)})
+        if video:
+            video["_id"] = str(video["_id"])
+            watched_videos.append(video)
+
+    # Create merchant embedding
+    merchant_text = f"{data['merchantType']} {data['merchantLocation']} {data['transactionTitle']}"
+    merchant_embedding = embedding_model.encode(merchant_text).astype(np.float32)
+    
+
+    # No rewards distribution needed
+    if not watched_videos:
+        return jsonify({
+            "msg": "No rewards distribution required due to no watched videos"
+        })
+    
+    
+    # Calculate relevance scores for each video
+    influence_scores = {}
+    for video in watched_videos:
+        if not video["posterId"]:
+            continue
+            
+        # Calculate cosine similarity between merchant and video
+        video_embedding = video["embedding"]
+        similarity = np.dot(merchant_embedding, video_embedding) / (
+            np.linalg.norm(merchant_embedding) * np.linalg.norm(video_embedding)
+        )
+        
+        # Add to influence scores (accumulate if same poster)
+        if video["posterId"] in influence_scores:
+            influence_scores[video["posterId"]] += similarity
+        else:
+            influence_scores[video["posterId"]] = similarity
+    
+    # Normalize influence scores to sum up to 100
+    total_score = sum(influence_scores.values())
+    if total_score > 0:
+        for poster_id in influence_scores:
+            influence_scores[poster_id] = (influence_scores[poster_id] / total_score) * 100
+    
+    # Get wallet addresses for users
+    results = []
+    for poster_id, score in influence_scores.items():
+        try:
+            user = users_collection.find_one({"_id": ObjectId(poster_id)})
+            if user and "walletId" in user:
+                results.append({
+                    "influenceScore": float(score),
+                    "walletAddress": user["walletId"]
+                })
+        except:
+            continue
+    
+    # Sort by influence score in descending order
+    results.sort(key=lambda x: x["influenceScore"], reverse=True)
+    print("Results:", results)
+    return jsonify({
+        "users": results
+    })
+
+@app.route("/get_all_interactions", methods=["GET"])
+def get_all_interactions():
+    interactions = interactions_collection.find()
+    interaction_list = []
+    for interaction in interactions:
+        interaction["_id"] = str(interaction["_id"])
+        interaction_list.append(interaction)
+    return jsonify({"interactions": interaction_list})
+
+
+if __name__ == "__main__":
+    load_faiss_indices()  # Ensure FAISS loads embeddings on startup
+    app.run(debug=True, port=5001)
