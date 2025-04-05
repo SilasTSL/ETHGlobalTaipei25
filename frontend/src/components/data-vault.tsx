@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Eye, Database, Target, ShoppingBag, Shield, ExternalLink, SlidersHorizontal, Coins } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// import { fetchDataUsageRecords } from "@/lib/data-records"
+import { fetchDataUsageRecords } from "@/lib/data-vault"
 
 // Types for data records
 interface BaseRecord {
@@ -42,12 +42,12 @@ export function DataVault() {
   const [typeFilter, setTypeFilter] = useState("all")
 
   // Fetch data records on component mount
-  useState(() => {
+  useEffect(() => {
     const fetchRecords = async () => {
       setIsLoading(true)
       try {
-        // const data = await fetchDataUsageRecords()
-        // setRecords(data)
+        const data = await fetchDataUsageRecords()
+        setRecords(data)
       } catch (error) {
         console.error("Failed to fetch data records:", error)
       } finally {
@@ -56,7 +56,7 @@ export function DataVault() {
     }
 
     fetchRecords()
-  })
+  }, [])
 
   // Filter records based on selected filters
   const filteredRecords = records.filter((record) => {
