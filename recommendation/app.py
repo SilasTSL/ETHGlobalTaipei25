@@ -97,3 +97,108 @@ def init_user():
     user_id = users_collection.insert_one(data).inserted_id
     load_faiss_indices()  # Reload FAISS after inserting
     return jsonify({"user_id": str(user_id), "message": "User embedding stored"})
+
+
+@app.route("/user/recommendations", methods=["GET"])
+def get_recommendations():
+    user_id = request.args.get("user_id")
+    try:
+        user_object_id = ObjectId(user_id)  # Convert string to ObjectId
+    except:
+        return jsonify({"error": "Invalid user ID format"}), 400
+    
+    user_data = users_collection.find_one({"_id": user_object_id})
+    if not user_data or "embedding" not in user_data:
+        return jsonify({"error": "User embedding not found"}), 404
+    
+    user_embedding = np.array(user_data["embedding"]).astype(np.float32)
+
+    # Search FAISS for the top 5 most similar videos
+    video_distances, video_indices = video_index.search(np.array([user_embedding]), 5)
+    user_distances, user_indices = user_index.search(np.array([user_embedding]), 5)
+    
+    print("FAISS video search indices:", video_indices)
+    print("FAISS video similarity scores:", video_distances)
+    print("FAISS user search indices:", user_indices)
+    print("FAISS user similarity scores:", user_distances)
+
+    recommended_videos = []
+    recommended_users = []
+    video_ids = list(videos_collection.find({}, {"_id": 1}))  # Retrieve all video IDs in order
+    user_ids = list(users_collection.find({}, {"_id": 1}))  # Retrieve all user IDs in order
+
+    for idx, distance in zip(video_indices[0], video_distances[0]):
+        if idx != -1 and idx < len(video_ids):  # Ensure index is valid
+            video_object_id = video_ids[idx]["_id"]
+            video = videos_collection.find_one({"_id": video_object_id})
+            if video:
+                video["_id"] = str(video["_id"])
+                video["similarity_score"] = float(distance)  # Lower score = more similar
+                print("Recommending video:", video["_id"], "with similarity score:", video["similarity_score"])
+                recommended_videos.append(video)
+    
+    for idx, distance in zip(user_indices[0], user_distances[0]):
+        if idx != -1 and idx < len(user_ids):  # Ensure index is valid
+            user_object_id = user_ids[idx]["_id"]
+            if user_object_id == user_data["_id"]:  # Skip the user himself
+                continue
+            similar_user = users_collection.find_one({"_id": user_object_id})
+            if similar_user:
+                similar_user["_id"] = str(similar_user["_id"])
+                similar_user["similarity_score"] = float(distance)  # Lower score = more similar
+                recommended_users.append(similar_user)
+
+
+    # Sort users by similarity score (FAISS returns L2 distance, lower is better)
+    recommended_users.sort(key=lambda x: x["similarity_score"])
+
+    liked_videos_by_recommended_users = []
+    videos_from_recommended_users_over_5 = False
+    for user in recommended_users:
+        print("Checking user:", user["username"], "with similarity score:", user["similarity_score"])
+        if videos_from_recommended_users_over_5:
+            break
+        liked_interactions_by_recommended_user = list(interactions_collection.find(
+            {
+                "userId": str(user["_id"]),
+                "type": "like"
+            }
+        ))
+        print("Liked interactions:", liked_interactions_by_recommended_user)
+        for interaction in liked_interactions_by_recommended_user:
+            if len(liked_interactions_by_recommended_user) >= 5:
+                videos_from_recommended_users_over_5 = True
+                break
+
+            video = videos_collection.find_one({"_id": ObjectId(interaction["videoId"])})
+            if video:
+                video["_id"] = str(video["_id"])
+                video["similarity_score"] = float(user["similarity_score"])
+                if video["_id"] not in [video["_id"] for video in recommended_videos]: # Prevent duplicates
+                    print("Recommending video:", interaction["videoId"], "from recommended user:", user["_id"])
+                    liked_videos_by_recommended_users.append(video)
+                # Log data usage for reccomendation for similar user
+                print("Logging data usage for recommendation for similar user: ", user["_id"])
+                response = requests.post(os.getenv("BACKEND_URL") + "/data-usage/recommendation", json={
+                    "walletAddress": user["walletId"]
+                })
+
+    recommended_videos.extend(liked_videos_by_recommended_users)
+
+    """
+    # Remove videos that have already been watched by user (REMOVED FOR TESTING PURPOSES)
+    watched_videos_by_user = list(interactions_collection.find(
+        {
+            "userId": str(user_id),
+            "type": "watch"
+        },
+        {"videoId": 1, "_id": 0}
+    ))
+    recommended_videos = [video for video in recommended_videos if video["_id"] not in [interaction["videoId"] for interaction in watched_videos_by_user]]
+    """
+
+    recommended_videos.sort(key=lambda x: x["similarity_score"])
+
+    return jsonify({
+        "recommended_videos": recommended_videos
+    })
