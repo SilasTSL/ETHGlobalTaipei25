@@ -4,46 +4,46 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { Heart, MessageCircle, Share2, Music, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { fetchRecommendedVideos } from "@/lib/videos"
+import { fetchRecommendedVideos } from "@/lib/videos"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ProductAd } from "./product-ads"
 
 // Mock data for videos
-const mockVideos = [
-  {
-    id: 1,
-    username: "@cryptoCreator",
-    description: "Check out this new NFT collection I just launched! #web3 #nft",
-    music: "Blockchain Beats - Crypto Anthem",
-    likes: 1245,
-    comments: 89,
-    shares: 32,
-    videoUrl: "/videos/67eba273a10e7cbaa138c391.mp4", // Update with your actual video path
-    userAvatar: "/avatars/user1.jpg", // Update with actual avatar path
-  },
-  {
-    id: 2,
-    username: "@web3enthusiast",
-    description: "How to set up your first crypto wallet in 3 easy steps! #tutorial #crypto",
-    music: "Digital Future - Web3 Vibes",
-    likes: 3782,
-    comments: 156,
-    shares: 201,
-    videoUrl: "/videos/67eba2baa10e7cbaa138c392.mp4", // Update with your actual video path
-    userAvatar: "/avatars/user2.jpg", // Update with actual avatar path
-  },
-  {
-    id: 3,
-    username: "@defiQueen",
-    description: "Earning passive income with DeFi protocols. Here's how! #defi #passive",
-    music: "Yield Farming - Crypto Mix",
-    likes: 5621,
-    comments: 243,
-    shares: 178,
-    videoUrl: "/videos/67eba1f6a10e7cbaa138c38f.mp4", // Update with your actual video path
-    userAvatar: "/avatars/user3.jpg", // Update with actual avatar path
-  },
-]
+// const videos = [
+//   {
+//     id: 1,
+//     username: "@cryptoCreator",
+//     description: "Check out this new NFT collection I just launched! #web3 #nft",
+//     music: "Blockchain Beats - Crypto Anthem",
+//     likes: 1245,
+//     comments: 89,
+//     shares: 32,
+//     videoUrl: "/videos/67eba273a10e7cbaa138c391.mp4", // Update with your actual video path
+//     userAvatar: "/avatars/user1.jpg", // Update with actual avatar path
+//   },
+//   {
+//     id: 2,
+//     username: "@web3enthusiast",
+//     description: "How to set up your first crypto wallet in 3 easy steps! #tutorial #crypto",
+//     music: "Digital Future - Web3 Vibes",
+//     likes: 3782,
+//     comments: 156,
+//     shares: 201,
+//     videoUrl: "/videos/67eba2baa10e7cbaa138c392.mp4", // Update with your actual video path
+//     userAvatar: "/avatars/user2.jpg", // Update with actual avatar path
+//   },
+//   {
+//     id: 3,
+//     username: "@defiQueen",
+//     description: "Earning passive income with DeFi protocols. Here's how! #defi #passive",
+//     music: "Yield Farming - Crypto Mix",
+//     likes: 5621,
+//     comments: 243,
+//     shares: 178,
+//     videoUrl: "/videos/67eba1f6a10e7cbaa138c38f.mp4", // Update with your actual video path
+//     userAvatar: "/avatars/user3.jpg", // Update with actual avatar path
+//   },
+// ]
 
 // Mock data for product ads
 const productAds = [
@@ -57,7 +57,7 @@ const productAds = [
     discount: "15% OFF",
     imageUrl: "/images/101.jpg?height=720&width=405&text=CryptoSecure",
     ctaText: "Shop Now",
-    ctaUrl: "/purchase?address=0x1234567890123456789012345678901234567890",
+    ctaUrl: "/purchase?address=0xb76d3afB4AECe9f9916EB5e727B7472b609332dE&price=19.99",
   },
   {
     id: 102,
@@ -68,7 +68,7 @@ const productAds = [
     discount: "20% OFF",
     imageUrl: "/images/102.jpeg?height=720&width=405&text=Low-Risk+Crypto+Investment+Guide",
     ctaText: "Shop Now",
-    ctaUrl: "/purchase?address=0x1234567890123456789012345678901234567890",
+    ctaUrl: "/purchase?address=0xb76d3afB4AECe9f9916EB5e727B7472b609332dE&price=5.99",
   },
 ]
 
@@ -108,8 +108,7 @@ export function VideoFeed() {
     const fetchVideos = async () => {
       try {
         setLoading(true)
-        // const recommendedVideos = await fetchRecommendedVideos(userId)
-        const recommendedVideos = mockVideos
+        const recommendedVideos = await fetchRecommendedVideos(userId)
         const interleavedVideos = interleaveAdsWithVideos(recommendedVideos, productAds)
         setVideos(interleavedVideos)
         setCurrentVideoIndex(0)
@@ -161,7 +160,7 @@ export function VideoFeed() {
   }, [currentVideoIndex, loading, videos])
   
   return (
-    <div className="video-container">
+    <div className="video-container web3-bg">
       <div ref={scrollContainerRef} className="video-scroll">
         {loading ? (
           <div className="video-item h-screen">
@@ -176,7 +175,7 @@ export function VideoFeed() {
         ) : (
           videos.map((video: any, index) => (
             video.isAd ? (
-              <div ref={(el) => {
+              <div key={video.id} ref={(el) => {
                   contentRefs.current[index] = el
                 }}
                 className="scroll-item h-screen"
@@ -202,13 +201,13 @@ export function VideoFeed() {
                 <div className="video-overlay">
                   <div className="flex">
                     <div className="flex-1 flex flex-col justify-end pb-2">
-                      <h3 className="font-bold text-white mb-1">@{video.username}</h3>
+                      <h3 className="font-bold text-white mb-1 web3-username">@{video.username}</h3>
                       <p className="text-sm text-white/80 mb-1">{video.description}</p>
                       <p className="text-sm text-white/80 mb-2">{video.hashtags}</p>
                     </div>
 
                     <div className="flex flex-col items-center gap-4">
-                      <Avatar className="w-10 h-10 border-2 border-white">
+                      <Avatar className="w-10 h-10 border-2 web3-avatar-border">
                         <AvatarImage src={video.userAvatar} alt={video.username} />
                         <AvatarFallback>
                           <User className="h-5 w-5" />
