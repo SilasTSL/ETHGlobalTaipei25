@@ -6,6 +6,7 @@ import { logInfluencePreRewardEvent } from '../service/smartContract/PreRewardLo
 import express from 'express'
 import PurchaseTransaction from '../model/PurchaseTransactions.js'
 import sessionMiddleware from '../middleware/session.js'
+import { EnsService } from '../service/web3/ensService.js'
 
 const router = express.Router()
 
@@ -14,13 +15,16 @@ router.use(sessionMiddleware)
 router.post('/same-chain', async (req, res) => {
   try {
     const {
-      destinationAddress,
+      destinationEnsName,
       amount,
       chainsInvolved,
       txDetails,
       tokenToTransfer,
     } = req.body
     const { pk: privateKey } = req.session.user
+
+    const destinationAddress =
+      await EnsService.resolveEnsName(destinationEnsName)
     const { sourceAddress, txHash } = await sendPaymentTransaction(
       destinationAddress,
       amount.toString(),
@@ -35,7 +39,11 @@ router.post('/same-chain', async (req, res) => {
       blockchain: chainsInvolved.split('_')[0],
     })
 
-    return res.json({ sourceAddress, destinationAddress, txHash })
+    return res.json({
+      sourceAddress: destinationEnsName,
+      destinationAddress,
+      txHash,
+    })
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -45,12 +53,15 @@ router.post('/same-chain', async (req, res) => {
 router.post('/bridge', async (req, res) => {
   try {
     const {
-      destinationAddress,
+      destinationEnsName,
       amount,
       chainsInvolved,
       tokenToTransfer,
       txDetails,
     } = req.body
+    const destinationAddress =
+      await EnsService.resolveEnsName(destinationEnsName)
+
     const { pk: privateKey } = req.session.user
     const { sourceAddress, txHash, mintTxHash } =
       await sendBridgePaymentTransaction(
@@ -68,7 +79,11 @@ router.post('/bridge', async (req, res) => {
       blockchain: chainsInvolved.split('_')[0], //TODO: Take the second chain for now as the transaction is the minting transaction on destination chain
     })
 
-    return res.json({ sourceAddress, destinationAddress, txHash })
+    return res.json({
+      sourceAddress: destinationEnsName,
+      destinationAddress,
+      txHash,
+    })
   } catch (error) {
     res.status(400).json({ error: error.message })
   }

@@ -1,18 +1,42 @@
 {
-  "name": "backend",
+  "name": "ethbackend",
   "version": "1.0.0",
-  "description": "Express backend server",
-  "main": "src/index.js",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
   },
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
-    "express": "^4.18.2",
+    "@1inch/cross-chain-sdk": "^0.1.13",
+    "@1inch/fusion-sdk": "^2.2.3",
+    "@selfxyz/core": "^0.0.24",
+    "axios": "^1.8.3",
+    "bip39": "^3.1.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.1"
+    "decimal.js": "^10.5.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mongoose": "^8.12.1",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.9",
+    "ox": "^0.6.7",
+    "permissionless": "^0.2.37",
+    "viem": "^2.23.10",
+    "web3": "^4.16.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "@eslint/js": "^9.22.0",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3"
   }
-} 
+}

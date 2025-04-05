@@ -24,7 +24,6 @@ const BASE_SEPOLIA_BUNDLER = `https://base-sepolia.g.alchemy.com/v2/3rEH846sAlOi
 const BASE_SEPOLIA_USDC = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
 
 const MAX_GAS_USDC = 10000000n
-const PRIVATE_KEY = process.env.MY_PRIVATE_KEY
 
 const usdc = getContract({
   client: BasePublicClient,
@@ -33,7 +32,6 @@ const usdc = getContract({
 })
 
 class USDCPaymasterServiceProvider {
-  account = privateKeyToAccount(`0x${PRIVATE_KEY}`)
   BASE_SEPOLIA_PAYMASTER = '0x31BE08D380A21fc740883c0BC434FcFc88740b58'
   bundlerClient = createBundlerClient({
     BasePublicClient,
@@ -119,10 +117,10 @@ class USDCPaymasterServiceProvider {
     })
   }
 
-  async fundSmartWalletWithUSDC(smartWalletAddress, amountUSDCWei) {
+  async fundSmartWalletWithUSDC(smartWalletAddress, amountUSDCWei, account) {
     try {
       // Check if the owner has enough USDC balance
-      const ownerBalance = await usdc.read.balanceOf([this.account.address])
+      const ownerBalance = await usdc.read.balanceOf([account.address])
       const smartWalletBalance = await usdc.read.balanceOf([smartWalletAddress])
 
       if (smartWalletBalance >= amountUSDCWei) {
@@ -144,7 +142,7 @@ class USDCPaymasterServiceProvider {
       // Transfer USDC from owner to smart wallet
       const hash = await usdc.write.transfer(
         [smartWalletAddress, requiredUSDCWei],
-        { account: this.account },
+        { account: account },
       )
 
       // Wait for transaction to be confirmed
@@ -164,12 +162,13 @@ class USDCPaymasterServiceProvider {
     }
   }
 
-  async sendPaymentTransaction(destinationAddress, amount) {
+  async sendPaymentTransaction(destinationAddress, amount, privateKey) {
     console.log(
       `[${this.constructor.name}] Creating Payment transaction for USDC token on ${this.network} and paying gas fees with USDC`,
     )
     const amountInWei = this.convertUSDCToWei(amount)
-    const smartAccount = await this.createSmartWallet(this.account) //TODO: replace with user account in future
+    const account = privateKeyToAccount(`0x${privateKey}`)
+    const smartAccount = await this.createSmartWallet(account) //TODO: replace with user account in future
 
     const permitSignature = await this.createPaymasterPermit(smartAccount)
     const calls = [this.createUSDCCall(destinationAddress, amountInWei)]
@@ -200,7 +199,8 @@ class USDCPaymasterServiceProvider {
 
     await this.fundSmartWalletWithUSDC(
       smartAccount.address,
-      amountInWei + 500000n,
+      amountInWei + 100000n,
+      account,
     ) // HARDCODED AMOUNT TO ENSURE GAS FEES ARE AMPLE
     const {
       callGasLimit,
@@ -256,7 +256,7 @@ class USDCPaymasterServiceProvider {
       formatUnits(userOpReceipt.receipt.gasUsed.toString(), '6'),
     )
     return {
-      sourceAddress: this.account.address,
+      sourceAddress: account.address,
       txHash: userOpReceipt.receipt.transactionHash,
     }
   }

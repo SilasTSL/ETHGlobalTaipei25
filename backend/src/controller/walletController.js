@@ -18,7 +18,6 @@ router.use(sessionMiddleware)
 // Route to get wallet balance on mainnet
 router.get('/balance', async (req, res) => {
   try {
-    console.log(req.session)
     const { address: walletAddress } = req.session.user
     const { blockchain } = req.query
     if (!walletAddress) {
