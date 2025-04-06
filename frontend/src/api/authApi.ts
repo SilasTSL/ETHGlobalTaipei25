@@ -62,12 +62,12 @@ const loginUser = async (
 /**x
  * Check if user exists by seedphrase
  */
-const checkUserExists = async (
-  seedphrase: string
+const checkLabelExists = async (
+  ensLabel: string
 ): Promise<ExistsResponse> => {
   try {
     const response = await axios.post(`${BASE_URL}/exists`, {
-      seedphrase,
+      ensName:ensLabel,
     });
     return response.data;
   } catch (error) {
@@ -95,6 +95,6 @@ const getUserSession = async (): Promise<SessionResponse> => {
 export {
   registerUser,
   loginUser,
-  checkUserExists,
+  checkLabelExists,
   getUserSession,
 };

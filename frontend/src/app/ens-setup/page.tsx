@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useDebounce } from "@/hooks/use-debounce"
 import { useAuth } from "@/components/contexts/authContext"
-import { registerUser } from "@/api/authApi"
+import { registerUser, checkLabelExists } from "@/api/authApi"
 
 export default function SetupENS() {
   const router = useRouter()
@@ -41,18 +41,10 @@ export default function SetupENS() {
       setIsChecking(true)
 
       try {
-        // TODO: Call your API to check ENS availability
-        // const response = await fetch(`/api/ens/check?name=${debouncedEnsName}`);
-        // if (!response.ok) throw new Error('Failed to check availability');
-        // const data = await response.json();
-        // setIsAvailable(data.isAvailable);
-
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 800))
-
-        // For demo purposes, make names ending with .eth available
-        const available = !debouncedEnsName.includes("taken")
-        setIsAvailable(available)
+        const response = await checkLabelExists(debouncedEnsName)
+        console.log('exists', response)
+        // If label exists, it's not available. If it doesn't exist (false), it's available
+        setIsAvailable(!response.exists)
       } catch (err) {
         console.error(err)
         setIsAvailable(null)
