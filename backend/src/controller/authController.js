@@ -63,10 +63,14 @@ router.post('/login', async (req, res) => {
 
 // 3. Check if user exists
 router.post('/exists', async (req, res) => {
-  const { seedphrase } = req.body
+  const { ensName } = req.body
+  console.log(ensName)
   try {
-    const user = await User.findOne({ seedphrase })
-    res.json({ exists: !!user })
+    // Append the TLD if not provided
+    const fullEnsName = `${ensName}.${process.env.ENS_TLD}`
+    const address = await EnsService.resolveEnsName(fullEnsName)
+    console.log(address)
+    res.json({ exists: !!address })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
